@@ -43,8 +43,8 @@ If `branch_name` is already taken, append a number:
 ## Step 4 — Switch to main and pull latest
 Run:
 ```
-git checkout main
-git pull origin main
+git checkout master
+git pull origin master
 ```
 
 ## Step 5 — Create and switch to the feature branch
