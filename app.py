@@ -1,6 +1,7 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash,session
 from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
 from database.db import init_db, seed_db, get_db,get_user_by_email
 
 app = Flask(__name__)
@@ -22,6 +23,9 @@ def landing():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if "user_id" in session:
+        return redirect(url_for("landing"))
+
     if request.method == "GET":
         return render_template("register.html")
 
@@ -57,6 +61,9 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user_id" in session:
+        return redirect(url_for("landing"))
+
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
@@ -68,7 +75,7 @@ def login():
 
         session["user_id"] = user["id"]
         session["user_name"] = user["name"]
-        return redirect(url_for("profile"))
+        return redirect(url_for("landing"))
 
     return render_template("login.html")
 
