@@ -18,6 +18,8 @@
     --danger-light: #fdecea;
     --border: #e4e1da;
     --border-soft: #eeebe4;
+    --badge-purple-bg: #f0edfb;
+    --badge-purple-text: #6d4caf;
 
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
@@ -708,4 +710,182 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 600px) {
     .nav-links a:not(.nav-cta) { display: none; }
     .hero { padding: 3rem 1rem 2rem; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Profile page                                                        */
+/* ------------------------------------------------------------------ */
+
+.profile-section {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+/* User info card */
+.profile-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+}
+
+.profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
+
+.profile-meta { display: flex; flex-direction: column; gap: 0.3rem; }
+.profile-name { font-family: var(--font-display); font-size: 1.5rem; color: var(--ink); line-height: 1.2; }
+.profile-email { font-size: 0.9rem; color: var(--ink-muted); }
+.profile-since { font-size: 0.8rem; color: var(--ink-faint); margin-top: 0.15rem; }
+
+/* Stats row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.75rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+/* Section card shell */
+.section-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--ink);
+}
+
+/* Transaction table */
+.txn-table { width: 100%; border-collapse: collapse; }
+
+.txn-table thead th {
+    padding: 0.75rem 1.75rem;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    background: var(--paper);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.txn-table tbody tr { border-bottom: 1px solid var(--border-soft); }
+.txn-table tbody tr:last-child { border-bottom: none; }
+.txn-table tbody tr:hover { background: var(--paper); }
+
+.txn-table td {
+    padding: 1rem 1.75rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    vertical-align: middle;
+}
+
+.txn-date   { color: var(--ink-muted); font-size: 0.85rem; }
+.txn-desc   { color: var(--ink); font-weight: 500; }
+.txn-amount { font-weight: 600; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Category badges */
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.badge--food          { background: var(--accent-2-light);    color: var(--accent-2); }
+.badge--shopping      { background: var(--accent-light);      color: var(--accent); }
+.badge--entertainment { background: var(--badge-purple-bg);   color: var(--badge-purple-text); }
+.badge--health        { background: var(--danger-light);      color: var(--danger); }
+.badge--bills         { background: var(--paper-warm);        color: var(--ink-soft); }
+.badge--transport     { background: var(--accent-light);      color: var(--accent); }
+.badge--other         { background: var(--border-soft);       color: var(--ink-muted); }
+
+/* Category breakdown */
+.cat-list { padding: 1.25rem 1.75rem; display: flex; flex-direction: column; gap: 1.1rem; }
+
+.cat-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 70px;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cat-name   { font-size: 0.9rem; color: var(--ink-soft); font-weight: 500; }
+.cat-amount { font-size: 0.85rem; color: var(--ink-muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+.bar-track { height: 8px; background: var(--border-soft); border-radius: 999px; overflow: hidden; }
+
+.bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    width: var(--bar);
+    transition: width 0.5s ease;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .cat-row   { grid-template-columns: 100px 1fr 60px; }
+}
+
+@media (max-width: 600px) {
+    .profile-section { padding: 2rem 1rem 3rem; }
+    .profile-card    { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .txn-table thead th:first-child,
+    .txn-table td:first-child { display: none; }
 }
