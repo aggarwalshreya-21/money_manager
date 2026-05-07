@@ -86,3 +86,44 @@ def get_user_by_email(email):
     user = cursor.fetchone()
     conn.close()
     return user
+
+
+def get_user_by_id(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+
+def get_user_expenses(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        'SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC',
+        (user_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+def get_category_stats(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC',
+        (user_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    grand_total = sum(row["total"] for row in rows)
+    return [
+        {
+            "name": row["category"],
+            "amount": f"₹{row['total']:,.2f}",
+            "percent": round((row["total"] / grand_total) * 100) if grand_total else 0,
+        }
+        for row in rows
+    ]

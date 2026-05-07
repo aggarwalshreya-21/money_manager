@@ -1,8 +1,9 @@
 import sqlite3
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash,session
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
-from database.db import init_db, seed_db, get_db,get_user_by_email
+from database.db import init_db, seed_db, get_db, get_user_by_email, get_user_by_id, get_user_expenses, get_category_stats
 
 app = Flask(__name__)
 app.secret_key = 'spendly-secret-key-change-in-production'
@@ -105,34 +106,54 @@ def profile():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    # --- SECTION A: user info & stats (Subagent 2) ---
+    db_user = get_user_by_id(session["user_id"])
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT SUM(amount), COUNT(*) FROM expenses WHERE user_id = ?', (session["user_id"],))
+    agg = cursor.fetchone()
+    cursor.execute(
+        'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC LIMIT 1',
+        (session["user_id"],)
+    )
+    top = cursor.fetchone()
+    conn.close()
+
+    total_amount = agg[0] or 0.0
+    tx_count = agg[1] or 0
+    top_cat = top["category"] if top else "—"
+    initials = "".join(p[0].upper() for p in db_user["name"].split()[:2])
+    member_since = datetime.strptime(db_user["created_at"][:10], "%Y-%m-%d").strftime("%B %Y")
+
     user = {
-        "name": "Nitish Kumar",
-        "email": "nitish@example.com",
-        "initials": "NK",
-        "member_since": "January 2026",
+        "name": db_user["name"],
+        "email": db_user["email"],
+        "initials": initials,
+        "member_since": member_since,
     }
-
     stats = {
-        "total_spent": "₹18,240",
-        "transactions": 34,
-        "top_category": "Food",
+        "total_spent": f"₹{total_amount:,.2f}",
+        "transactions": tx_count,
+        "top_category": top_cat,
     }
+    # --- END SECTION A ---
 
+    # --- SECTION B: transaction history (Subagent 1) ---
+    raw_expenses = get_user_expenses(session["user_id"])
     transactions = [
-        {"date": "20 May 2026", "description": "Dinner with friends",  "category": "Food",          "amount": "₹48.00"},
-        {"date": "15 May 2026", "description": "Groceries",            "category": "Shopping",      "amount": "₹67.50"},
-        {"date": "10 May 2026", "description": "Movie tickets",        "category": "Entertainment", "amount": "₹30.00"},
-        {"date": "08 May 2026", "description": "Pharmacy",             "category": "Health",        "amount": "₹23.75"},
-        {"date": "05 May 2026", "description": "Electricity bill",     "category": "Bills",         "amount": "₹85.00"},
+        {
+            "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%-d %B %Y"),
+            "description": row["description"] or "",
+            "category": row["category"],
+            "amount": f"₹{row['amount']:.2f}",
+        }
+        for row in raw_expenses
     ]
+    # --- END SECTION B ---
 
-    categories = [
-        {"name": "Food",          "amount": "₹6,240", "percent": 34},
-        {"name": "Bills",         "amount": "₹4,760", "percent": 26},
-        {"name": "Shopping",      "amount": "₹3,680", "percent": 20},
-        {"name": "Transport",     "amount": "₹2,250", "percent": 12},
-        {"name": "Entertainment", "amount": "₹1,310", "percent": 8},
-    ]
+    # --- SECTION C: category breakdown (Subagent 3) ---
+    categories = get_category_stats(session["user_id"])
+    # --- END SECTION C ---
 
     return render_template(
         "profile.html",
