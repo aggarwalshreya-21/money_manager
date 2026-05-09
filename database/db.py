@@ -97,25 +97,37 @@ def get_user_by_id(user_id):
     return user
 
 
-def get_user_expenses(user_id):
+def get_user_expenses(user_id, start_date=None, end_date=None):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        'SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC',
-        (user_id,)
-    )
+    query = 'SELECT date, description, category, amount FROM expenses WHERE user_id = ?'
+    params = [user_id]
+    if start_date:
+        query += ' AND date >= ?'
+        params.append(start_date)
+    if end_date:
+        query += ' AND date <= ?'
+        params.append(end_date)
+    query += ' ORDER BY date DESC'
+    cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
     return rows
 
 
-def get_category_stats(user_id):
+def get_category_stats(user_id, start_date=None, end_date=None):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC',
-        (user_id,)
-    )
+    query = 'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ?'
+    params = [user_id]
+    if start_date:
+        query += ' AND date >= ?'
+        params.append(start_date)
+    if end_date:
+        query += ' AND date <= ?'
+        params.append(end_date)
+    query += ' GROUP BY category ORDER BY total DESC'
+    cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
     grand_total = sum(row["total"] for row in rows)

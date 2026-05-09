@@ -36,7 +36,19 @@
     <div class="section-card">
         <div class="section-header">
             <h2 class="section-title">Recent Transactions</h2>
+            <form class="date-filter-form" method="GET" action="{{ url_for('profile') }}">
+                <input type="date" name="start_date" value="{{ start_date }}" class="filter-input">
+                <span class="filter-sep">to</span>
+                <input type="date" name="end_date" value="{{ end_date }}" class="filter-input">
+                <button type="submit" class="filter-btn">Filter</button>
+                {% if filter_active %}
+                    <a href="{{ url_for('profile') }}" class="filter-reset">Clear</a>
+                {% endif %}
+            </form>
         </div>
+        {% if filter_active %}
+        <p class="filter-label">Showing: {{ start_date }} — {{ end_date }}</p>
+        {% endif %}
         <table class="txn-table">
             <thead>
                 <tr>
@@ -55,6 +67,10 @@
                         <span class="badge badge--{{ txn.category | lower }}">{{ txn.category }}</span>
                     </td>
                     <td class="txn-amount">{{ txn.amount }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="empty-state">No expenses found for this period.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -75,6 +91,8 @@
                 </div>
                 <span class="cat-amount">{{ cat.amount }}</span>
             </div>
+            {% else %}
+            <p class="empty-state">No categories found for this period.</p>
             {% endfor %}
         </div>
     </div>
