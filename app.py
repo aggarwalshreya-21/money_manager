@@ -106,22 +106,26 @@ def profile():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    # Parse and validate date filter parameters
+    start_date = request.args.get('start_date', '').strip() or None
+    end_date = request.args.get('end_date', '').strip() or None
+
+    def valid_date(s):
+        try:
+            datetime.strptime(s, '%Y-%m-%d')
+            return True
+        except ValueError:
+            return False
+
+    if start_date and not valid_date(start_date):
+        start_date = None
+    if end_date and not valid_date(end_date):
+        end_date = None
+    if start_date and end_date and end_date < start_date:
+        start_date, end_date = end_date, start_date
+
     # --- SECTION A: user info & stats (Subagent 2) ---
     db_user = get_user_by_id(session["user_id"])
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT SUM(amount), COUNT(*) FROM expenses WHERE user_id = ?', (session["user_id"],))
-    agg = cursor.fetchone()
-    cursor.execute(
-        'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC LIMIT 1',
-        (session["user_id"],)
-    )
-    top = cursor.fetchone()
-    conn.close()
-
-    total_amount = agg[0] or 0.0
-    tx_count = agg[1] or 0
-    top_cat = top["category"] if top else "—"
     initials = "".join(p[0].upper() for p in db_user["name"].split()[:2])
     member_since = datetime.strptime(db_user["created_at"][:10], "%Y-%m-%d").strftime("%B %Y")
 
@@ -131,15 +135,10 @@ def profile():
         "initials": initials,
         "member_since": member_since,
     }
-    stats = {
-        "total_spent": f"₹{total_amount:,.2f}",
-        "transactions": tx_count,
-        "top_category": top_cat,
-    }
     # --- END SECTION A ---
 
     # --- SECTION B: transaction history (Subagent 1) ---
-    raw_expenses = get_user_expenses(session["user_id"])
+    raw_expenses = get_user_expenses(session["user_id"], start_date, end_date)
     transactions = [
         {
             "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%-d %B %Y"),
@@ -152,8 +151,25 @@ def profile():
     # --- END SECTION B ---
 
     # --- SECTION C: category breakdown (Subagent 3) ---
-    categories = get_category_stats(session["user_id"])
+    categories = get_category_stats(session["user_id"], start_date, end_date)
     # --- END SECTION C ---
+
+    # Recalculate stats from filtered expenses
+    total_amount = sum(row["amount"] for row in raw_expenses) if raw_expenses else 0.0
+    tx_count = len(raw_expenses)
+    top_cat = "—"
+    if raw_expenses:
+        cat_totals = {}
+        for row in raw_expenses:
+            cat = row["category"]
+            cat_totals[cat] = cat_totals.get(cat, 0) + row["amount"]
+        top_cat = max(cat_totals, key=cat_totals.get)
+
+    stats = {
+        "total_spent": f"₹{total_amount:,.2f}",
+        "transactions": tx_count,
+        "top_category": top_cat,
+    }
 
     return render_template(
         "profile.html",
@@ -161,6 +177,9 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        start_date=start_date or '',
+        end_date=end_date or '',
+        filter_active=bool(start_date or end_date),
     )
 
 
