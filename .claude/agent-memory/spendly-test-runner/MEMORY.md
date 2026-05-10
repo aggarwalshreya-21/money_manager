@@ -1,0 +1,1 @@
+- [Step 06 Date Filter — Test Status](project_step06_status.md) — all 81 tests passed 2026-05-09; feature fully implemented across app.py, db.py, profile.html

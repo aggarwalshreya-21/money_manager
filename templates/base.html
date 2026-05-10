@@ -18,6 +18,12 @@
                 <span class="brand-icon">◈</span>
                 <span class="brand-name">Spendly</span>
             </a>
+            <div class="nav-menu">
+                {% if session.get("user_id") %}
+                    <a href="{{ url_for('profile') }}" class="nav-menu-item {% if request.endpoint == 'profile' %}active{% endif %}">Profile</a>
+                    <a href="{{ url_for('analytics') }}" class="nav-menu-item {% if request.endpoint == 'analytics' %}active{% endif %}">Analytics</a>
+                {% endif %}
+            </div>
             <div class="nav-links">
                 {% if session.get("user_id") %}
                     <span style="color: var(--ink-muted); font-size: 0.9rem;">{{ session.get("user_name") }}</span>
