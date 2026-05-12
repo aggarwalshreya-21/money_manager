@@ -196,7 +196,8 @@ def analytics():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    return render_template("analytics.html")
+    today = datetime.today().strftime("%Y-%m-%d")
+    return render_template("analytics.html", today=today, form_error=None)
 
 
 @app.route("/expenses/add", methods=["POST"])
