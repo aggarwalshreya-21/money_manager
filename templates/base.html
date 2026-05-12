@@ -26,6 +26,7 @@
             </div>
             <div class="nav-links">
                 {% if session.get("user_id") %}
+                    <button type="button" class="nav-add-expense" onclick="openAddExpenseModal()">+ Add Expense</button>
                     <span style="color: var(--ink-muted); font-size: 0.9rem;">{{ session.get("user_name") }}</span>
                     <form method="POST" action="{{ url_for('logout') }}" style="display:inline;">
                         <button type="submit" class="nav-cta">Sign out</button>
@@ -49,6 +50,49 @@
         {% block content %}{% endblock %}
     </main>
 
+    {# Add Expense Modal (available on all pages) #}
+    {% if session.get("user_id") %}
+    <div id="addExpenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Expense</h2>
+                <button type="button" class="modal-close" onclick="closeAddExpenseModal()">&times;</button>
+            </div>
+            <form method="POST" action="{{ url_for('add_expense') }}" class="modal-form">
+                <div class="form-group">
+                    <label for="expense-date">Date</label>
+                    <input type="date" id="expense-date" name="date" class="form-input" value="{{ today or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="expense-amount">Amount (₹)</label>
+                    <input type="number" id="expense-amount" name="amount" class="form-input" step="0.01" min="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="expense-category">Category</label>
+                    <select id="expense-category" name="category" class="form-input" required>
+                        <option value="" disabled selected>Select a category</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Bills">Bills</option>
+                        <option value="Health">Health</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expense-description">Description (optional)</label>
+                    <textarea id="expense-description" name="description" class="form-input" rows="2" maxlength="200" placeholder="e.g. Lunch at cafe"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddExpenseModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">Add Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
     <footer class="footer">
         <div class="footer-inner">
             <span class="brand-icon">◈</span>
@@ -60,6 +104,25 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+    <script>
+    function openAddExpenseModal() {
+        const modal = document.getElementById('addExpenseModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeAddExpenseModal() {
+        const modal = document.getElementById('addExpenseModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('addExpenseModal');
+        if (modal && event.target === modal) {
+            closeAddExpenseModal();
+        }
+    }
+    </script>
+    {% endblock %}
 </body>
 </html>

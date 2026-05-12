@@ -187,7 +187,6 @@ def profile():
         end_date=end_date or '',
         filter_active=bool(start_date or end_date),
         today=today,
-        form_error=form_error,
     )
 
 
@@ -196,8 +195,7 @@ def analytics():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    today = datetime.today().strftime("%Y-%m-%d")
-    return render_template("analytics.html", today=today, form_error=None)
+    return render_template("analytics.html")
 
 
 @app.route("/expenses/add", methods=["POST"])
