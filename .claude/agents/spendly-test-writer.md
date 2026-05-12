@@ -1,5 +1,5 @@
 ---
-name: "spendly-test-writer-writer"
+name: "spendly-test-writer"
 description: "Use this agent when you have implemented a new feature in Spendly and need to generate comprehensive spendly-test-writer test cases based on the feature specification. Invoke immediately after feature implementation is complete to ensure tests are written from the spec perspective rather than reverse-engineered from code."
 model: sonnet
 color: red
