@@ -39,6 +39,13 @@
     </nav>
 
     <main class="main-content">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="auth-success" style="max-width: var(--max-width); margin: 1rem auto; padding: 0.75rem 1.5rem;">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </main>
 

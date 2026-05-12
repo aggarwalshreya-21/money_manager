@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash,session
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
-from database.db import init_db, seed_db, get_db, get_user_by_email, get_user_by_id, get_user_expenses, get_category_stats
+from database.db import init_db, seed_db, get_db, get_user_by_email, get_user_by_id, get_user_expenses, get_category_stats, insert_expense
 
 app = Flask(__name__)
 app.secret_key = 'spendly-secret-key-change-in-production'
@@ -94,6 +94,9 @@ def privacy():
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
+
+EXPENSE_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
+
 
 @app.route("/logout", methods=["POST"])
 def logout():
@@ -191,9 +194,63 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        today = datetime.today().strftime("%Y-%m-%d")
+        return render_template("add-expense.html", categories=EXPENSE_CATEGORIES, today=today)
+
+    # --- POST: extract ---
+    date_str    = request.form.get("date", "").strip()
+    amount_str  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    description = request.form.get("description", "").strip() or None
+
+    # --- Validate ---
+    error = None
+    amount = None
+
+    if not date_str:
+        error = "Date is required."
+    else:
+        try:
+            parsed = datetime.strptime(date_str, "%Y-%m-%d")
+            if parsed.date() > datetime.today().date():
+                error = "Date cannot be in the future."
+        except ValueError:
+            error = "Invalid date format."
+
+    if not error:
+        if not amount_str:
+            error = "Amount must be greater than zero."
+        else:
+            try:
+                amount = float(amount_str)
+                if amount <= 0:
+                    error = "Amount must be greater than zero."
+            except ValueError:
+                error = "Amount must be a valid number."
+
+    if not error and category not in EXPENSE_CATEGORIES:
+        error = "Category is required."
+
+    if error:
+        return render_template(
+            "add-expense.html",
+            error=error,
+            categories=EXPENSE_CATEGORIES,
+            date=date_str,
+            amount=amount_str,
+            category=category,
+            description=description or "",
+        )
+
+    insert_expense(session["user_id"], amount, category, date_str, description)
+    flash("Expense added successfully.")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
