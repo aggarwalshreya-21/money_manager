@@ -109,6 +109,9 @@ def profile():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    today = datetime.today().strftime("%Y-%m-%d")
+    form_error = None
+
     # Parse and validate date filter parameters
     start_date = request.args.get('start_date', '').strip() or None
     end_date = request.args.get('end_date', '').strip() or None
@@ -183,6 +186,8 @@ def profile():
         start_date=start_date or '',
         end_date=end_date or '',
         filter_active=bool(start_date or end_date),
+        today=today,
+        form_error=form_error,
     )
 
 
@@ -194,16 +199,12 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add", methods=["GET", "POST"])
+@app.route("/expenses/add", methods=["POST"])
 def add_expense():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    if request.method == "GET":
-        today = datetime.today().strftime("%Y-%m-%d")
-        return render_template("add-expense.html", categories=EXPENSE_CATEGORIES, today=today)
-
-    # --- POST: extract ---
+    # --- Extract ---
     date_str    = request.form.get("date", "").strip()
     amount_str  = request.form.get("amount", "").strip()
     category    = request.form.get("category", "").strip()
@@ -238,15 +239,9 @@ def add_expense():
         error = "Category is required."
 
     if error:
-        return render_template(
-            "add-expense.html",
-            error=error,
-            categories=EXPENSE_CATEGORIES,
-            date=date_str,
-            amount=amount_str,
-            category=category,
-            description=description or "",
-        )
+        if "user_id" in session:
+            flash(error, "error")
+        return redirect(url_for("profile"))
 
     insert_expense(session["user_id"], amount, category, date_str, description)
     flash("Expense added successfully.")
